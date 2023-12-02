@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"cscsx.gitee.io","root":"/","scheme":"Pisces","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":true,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="拉格朗日乘子法是一种寻找非线性多元函数在一组等式约束下的极值的方案，在引入了 KKT 条件后，拉格朗日乘子法被泛化到了有不等式约束的一般形式。拉格朗日乘子法可以将多个等式约束的优化问题转化为无约束的拉格朗日函数优化问题，也可以将多个不等式约束的优化问题转化为 KKT 条件下拉格朗日函数的优化问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="拉格朗日乘子法">
+<meta property="og:url" content="https://cscsx.gitee.io/2023/12/01/lagrange-multiplier/index.html">
+<meta property="og:site_name" content="CSCSX&#39;s Blog">
+<meta property="og:description" content="拉格朗日乘子法是一种寻找非线性多元函数在一组等式约束下的极值的方案，在引入了 KKT 条件后，拉格朗日乘子法被泛化到了有不等式约束的一般形式。拉格朗日乘子法可以将多个等式约束的优化问题转化为无约束的拉格朗日函数优化问题，也可以将多个不等式约束的优化问题转化为 KKT 条件下拉格朗日函数的优化问题。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-12-01T15:55:36.000Z">
+<meta property="article:modified_time" content="2023-12-02T07:14:59.714Z">
+<meta property="article:author" content="CSCSX">
+<meta property="article:tag" content="知识点整理">
+<meta property="article:tag" content="优化理论">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://cscsx.gitee.io/2023/12/01/lagrange-multiplier/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>拉格朗日乘子法 | CSCSX's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">CSCSX's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">An NJU CSer</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://cscsx.gitee.io/2023/12/01/lagrange-multiplier/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="CSCSX">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CSCSX's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          拉格朗日乘子法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-12-01 23:55:36" itemprop="dateCreated datePublished" datetime="2023-12-01T23:55:36+08:00">2023-12-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-12-02 15:14:59" itemprop="dateModified" datetime="2023-12-02T15:14:59+08:00">2023-12-02</time>
+              </span>
+
+          <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>6.3k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>12 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>拉格朗日乘子法是一种寻找非线性多元函数在一组等式约束下的极值的方案，在引入了
+KKT
+条件后，拉格朗日乘子法被泛化到了有不等式约束的一般形式。拉格朗日乘子法可以将多个等式约束的优化问题转化为无约束的拉格朗日函数优化问题，也可以将多个不等式约束的优化问题转化为
+KKT 条件下拉格朗日函数的优化问题。</p>
+</blockquote>
+<span id="more"></span>
+<h3 id="等式约束的优化问题">等式约束的优化问题</h3>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\min_{\mathbf{x}}\quad\quad\quad\  f(\mathbf{x}) \\&amp;
+\text{subject to}\quad g(\mathbf{x})=0\\
+&amp;f,g:\mathbb{R}^d\to\mathbb{R}
+\end{aligned}
+\]</span></p>
+<p>对于如上的单个约束的优化问题，可以将 <span
+class="math inline">\(g(\mathbf{x})=0\)</span> 看做一个 <span
+class="math inline">\(d-1\)</span> 维曲面，存在两条结论：</p>
+<ul>
+<li>对于约束曲面 <span class="math inline">\(g(\mathbf{x})=0\)</span>
+上的任意点 <span class="math inline">\(\mathbf{x}\)</span>，该店的梯度
+<span class="math inline">\(\nabla g(\mathbf{x})\)</span>
+正交于约束曲面。这是因为，<span
+class="math inline">\(g(\mathbf{x})=0\)</span> 可以看做函数 <span
+class="math inline">\(g(\mathbf{x})\)</span>
+的一个等值面，而一个等值面上的任意一点梯度都与等值面垂直。</li>
+<li>在最优点 <span
+class="math inline">\(\mathbf{x}^*\)</span>，目标函数在该店的梯度 <span
+class="math inline">\(\nabla f(\mathbf{x}^*)\)</span>
+正交于约束曲面，这是因为，此时使 <span
+class="math inline">\(f(\mathbf{x})\)</span>
+增大的方向与约束曲面垂直，假如不垂直，则可以沿着约束曲面与向梯度的反方向移动，从而让
+<span class="math inline">\(f(\mathbf{x})\)</span> 的值变小。</li>
+</ul>
+<p>由此可知，在最优点 <span class="math inline">\(\mathbf{x}^*\)</span>
+处，梯度 <span class="math inline">\(\nabla f(\mathbf{x}^*)\)</span>
+和梯度 <span class="math inline">\(\nabla g(\mathbf{x}^*)\)</span>
+的方向相同或者相反，即存在 <span class="math inline">\(\lambda \ne
+0\)</span>，使得 <span class="math display">\[\nabla f(\mathbf{x}^*) +
+\lambda \nabla g(\mathbf{x}^*) = 0\]</span></p>
+<p><span class="math inline">\(\lambda\)</span>
+为拉格朗日乘子，定义拉格朗日函数 <span
+class="math display">\[L(\mathbf{x}, \lambda)=f(\mathbf{x})+\lambda
+g(\mathbf{x})\]</span></p>
+<p>此时分别求拉格朗日函数对 <span
+class="math inline">\(\mathbf{x}\)</span> 和对 <span
+class="math inline">\(\lambda\)</span> 的偏导数 <span
+class="math inline">\(\nabla_{\mathbf{x}}L(\mathbf{x}, \lambda)\)</span>
+和 <span
+class="math inline">\(\nabla_{\lambda}L(\mathbf{x},\lambda)\)</span>，分别令它们等于令可以得到上述限制以及原问题约束。于是，<strong>原约束优化问题可转化为对拉格朗日函数
+<span class="math inline">\(L(\mathbf{x},\lambda)\)</span>
+的无约束优化问题</strong>。</p>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\min_{\mathbf{x}}\quad\quad\quad\  f(\mathbf{x}) \\&amp;
+\text{subject to}\quad g_i(\mathbf{x})=0,\quad i=1,\cdots,m\\
+&amp;f,g:\mathbb{R}^d\to\mathbb{R}
+\end{aligned}
+\]</span></p>
+<p>对于多个等式约束的情况，梯度 <span class="math inline">\(\nabla
+f(\mathbf{x}^*)\)</span> 的方向是所有梯度 <span
+class="math inline">\(\nabla g_i(\mathbf{x}^*)\)</span>
+方向的线性组合，故如下定义拉格朗日函数，然后对 <span
+class="math inline">\(\mathbf{x}\)</span> 和所有的 <span
+class="math inline">\(\lambda_i\)</span> 求偏导置零即可。</p>
+<p><span class="math display">\[L(\mathbf{x},
+\mathbf{\lambda})=f(\mathbf{x})+\sum_{i=1}^m\lambda_i
+g_i(\mathbf{x})\]</span></p>
+<h3 id="不等式约束的优化问题">不等式约束的优化问题</h3>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\min_{\mathbf{x}}\quad\quad\quad\  f(\mathbf{x}) \\&amp;
+\text{subject to}\quad g(\mathbf{x})\le0\\
+&amp;f,g:\mathbb{R}^d\to\mathbb{R}
+\end{aligned}
+\]</span></p>
+<p>现将最初的优化问题改为一个不等式约束。仍然可以写出相应的拉格朗日函数，现在对该优化问题的最优解
+<span class="math inline">\(\mathbf{x}^*\)</span>
+分类讨论，推导出某个解是最优解需要满足的必要条件。</p>
+<ul>
+<li>当 <span class="math inline">\(g(\mathbf{x}^*)&lt;0\)</span>
+时，说明 <span class="math inline">\(\mathbf{x}^*\)</span> 是 <span
+class="math inline">\(f(\mathbf{x})\)</span> 的一个极值点，满足 <span
+class="math inline">\(\nabla
+f(\mathbf{x}^*)=0\)</span>，那么将拉格朗日函数中的 <span
+class="math inline">\(\lambda\)</span> 置零，<span
+class="math inline">\(\mathbf{x}^*\)</span> 必然满足 <span
+class="math inline">\(\nabla_{\mathbf{x}}L(\mathbf{x}^*,
+\lambda)=0\)</span>。</li>
+<li>当 <span class="math inline">\(g(\mathbf{x}^*)=0\)</span>
+时，与等式约束的情况类似，不同的是，<span class="math inline">\(\nabla
+f(\mathbf{x}^*)\)</span> 和 <span class="math inline">\(\nabla
+g(\mathbf{x}^*)\)</span>
+的方向必须相反，因为如果它们方向相同，沿梯度的反方向移动，则 <span
+class="math inline">\(f(\mathbf{x})\)</span> 和 <span
+class="math inline">\(g(\mathbf{x})\)</span> 都变小，与“在 <span
+class="math inline">\(g(\mathbf{x}^*)=0\)</span>边界上取最优解的讨论情况矛盾”，也即存在常数
+<span class="math inline">\(\lambda &gt;0\)</span> 使得 <span
+class="math inline">\(\nabla f(\mathbf{x}^*)+\lambda
+g(\mathbf{x}^*)=0\)</span>。</li>
+</ul>
+<p>整合这两种情况，必须满足 <span class="math inline">\(\lambda
+g(\mathbf{x}^*)=0\)</span>。</p>
+<p><span class="math display">\[
+\left.\left\{
+    \begin{array}{ll}
+        g(\mathbf{x})\le 0\\
+        \lambda \ge 0\\
+        \lambda g(\mathbf{x})=0
+    \end{array}
+\right.\right.
+\]</span></p>
+<p>因此，<strong>在约束 <span class="math inline">\(g(\mathbf{x})\le
+0\)</span> 下最小化 <span class="math inline">\(f(\mathbf{x})\)</span>
+可以转化为在如上约束下最小化拉格朗日函数的问题</strong>。</p>
+<p><span class="math display">\[
+\begin{aligned}
+\min_{\mathbf{x}}\quad  &amp;f(\mathbf{x}) \\
+\text{subject to}\quad &amp;h_i(\mathbf{x})=0\quad (i=1,\cdots,m)\\
+\quad &amp;g_i(\mathbf{x})\le0\quad (i=1,\cdots,m)\\
+f,g:&amp;\mathbb{R}^d\to\mathbb{R}
+\end{aligned}
+\]</span></p>
+<p>如上可以将该思路推广到 <span class="math inline">\(m\)</span>
+个等式约束和 <span class="math inline">\(n\)</span>
+个不等式约束，且可行域 <span class="math inline">\(\mathbb{D}\subset
+\mathbb{R}^d\)</span> 非空的优化问题。</p>
+<p>引入拉格朗日乘子 <span
+class="math inline">\(\mathbf{\lambda}=(\lambda_1,\lambda_2,\cdots,\lambda_m)^T\)</span>
+和 <span
+class="math inline">\(\mathbf{\mu}=(\mu_1,\mu_2,\cdots,\mu_n)^T\)</span>，则拉格朗日函数如下。</p>
+<p><span class="math display">\[
+L(\mathbb{x},\mathbf{\lambda},\mathbf{\mu})=f(\mathbf{x})+\sum_{i=1}^m\lambda_ih_i(\mathbf{x})+\sum_{i=1}^n\mu_ig_i(\mathbf{x})
+\]</span></p>
+<p>由不等式引入的 <a href="#kkt">KKT 条件</a> 如下。</p>
+<p><span class="math display">\[
+\left.\text{(KKT)}\left\{\begin{array}{ll}&amp;\nabla_{\mathbf{x}}{L}({\mathbf{x}},\lambda,\mu)=0\\&amp;g_i({\mathbf{x}})\leq
+0,i=1,\cdots,m\\&amp;\lambda_ig_i({\mathbf{x}})=0,i=1,\cdots,m\\&amp;\lambda_i\geq0,i=1,\cdots,m\\&amp;h_j({\mathbf{x}})=0,j=1,\cdots,n\end{array}\right.\right.
+\]</span></p>
+<h3 id="对偶问题">对偶问题</h3>
+<p>“对偶问题”一般而言是指“拉格朗日对偶问题”（Lagrangian dual
+problem）。最优化问题可以用两种观点来看待的理论，两种观点分别是“原始问题”（primal
+problem）及“对偶问题”（dual
+problem）。对偶问题的解提供了原始问题（假设是最小化问题）的下限。</p>
+<h4 id="拉格朗日函数">拉格朗日函数</h4>
+<p><span class="math display">\[
+L(\mathbb{x},\mathbf{\lambda},\mathbf{\mu})=f(\mathbf{x})+\sum_{i=1}^m\lambda_ih_i(\mathbf{x})+\sum_{i=1}^n\mu_ig_i(\mathbf{x})
+\]</span></p>
+<p>任何一个优化问题都存在相应的拉格朗日函数。</p>
+<h4 id="拉格朗日对偶函数">拉格朗日对偶函数</h4>
+<p><span class="math display">\[
+\begin{aligned}
+g(\boldsymbol\lambda,\boldsymbol\mu)&amp; =\inf_{x\in
+D}L(x,\lambda,\mu)  \\
+&amp;=\inf_{x\in
+D}\left.\left(f(x)+\sum_{i=1}^{m}\lambda_{i}h_{i}\left(x\right)+\sum_{j=1}^{n}\mu_{j}g_{j}\left(x\right)\right)\right.  \\
+s.t.\quad &amp; \mu\succeq0
+\end{aligned}
+\]</span></p>
+<p>定义拉格朗日对偶函数如上，对于任何一组给定的拉格朗日乘子，输出在可行域内拉格朗日函数值的下确界。</p>
+<h4 id="拉格朗日对偶问题">拉格朗日对偶问题</h4>
+<p><span class="math display">\[
+\begin{aligned}
+\max_{\lambda,\mu}g(\boldsymbol{\lambda},\boldsymbol{\mu})&amp;=\max_{\lambda,\mu}\inf_{\boldsymbol{x}\in
+D}L(\boldsymbol{x},\boldsymbol{\lambda},\boldsymbol{\mu})\\
+s.t.\quad &amp; \mu\succeq0
+\end{aligned}
+\]</span></p>
+<p>令原问题中最优解 <span class="math inline">\(\mathbf{x}^*\)</span>
+对应的目标函数值为 <span
+class="math inline">\(p^*\)</span>，对偶问题中最优解 <span
+class="math inline">\(\mathbf{\lambda,\mu}\)</span> 对应的目标函数值为
+<span
+class="math inline">\(d^*\)</span>，则定义原问题和对偶问题的对偶性如下。</p>
+<ul>
+<li>弱对偶性（Weak Duality）：<span class="math inline">\(d^*\le
+p^*\)</span></li>
+<li>强对偶性（Strong Duality）：<span
+class="math inline">\(d^*=p^*\)</span></li>
+</ul>
+<p>任何优化问题的原始问题和其对偶问题都满足弱对偶性。</p>
+<p><strong>强对偶性满足的一个充分条件是：原优化问题是一个<a
+href="#co">凸优化问题</a>，且原优化问题满足 <a href="#slater">Slater
+条件</a>。</strong></p>
+<p><strong>拉格朗日对偶问题一定是<a
+href="#co">凸优化问题</a>。</strong></p>
+<p>对偶问题将原来的 <span class="math inline">\(n+m\)</span>
+个函数约束变为了 <span class="math inline">\(m\)</span>
+个简单的约束，当原问题和对偶问题满足强对偶性是，可以通过求解对偶问题来求解原问题，很多场景下对偶问题比原问题容易求解。</p>
+<h3 id="概念">概念</h3>
+<h4 id="凸集">凸集</h4>
+<p><strong>凸集</strong>（Convex
+set）是一个点集合，其中每两点之间的线段点都落在该点集合中。</p>
+<h4 id="凸函数">凸函数</h4>
+<p><span class="math display">\[f\left[v+t\cdot(w-v)\right]\leq
+f(v)+t\cdot\left[f(w)-f(v)\right]\]</span></p>
+<p><span class="math inline">\(C\)</span>
+维某实向量空间的凸子集，若实值函数 <span
+class="math inline">\(f:C\rightarrow \mathbb{R}\)</span> 对任意 <span
+class="math inline">\(0\le t\le 1\)</span> 以及任意 <span
+class="math inline">\(v,w\in C\)</span>，皆满足上式，则称 <span
+class="math inline">\(f\)</span> 为<strong>凸函数</strong>（Convex
+function）。即在 <span class="math inline">\(f\)</span>
+的图像上，任意两点的连线不低于中间 <span
+class="math inline">\(f\)</span> 的曲线。</p>
+<h4 id="凸优化">凸优化 <a id="co"></a></h4>
+<p><span
+class="math display">\[\begin{aligned}&amp;\min_{\mathbf{x}}\quad\quad\quad\  f(\mathbf{x})
+\\&amp;\text{subject to}\quad g_i(\mathbf{x})\leq0,\quad
+i=1,\ldots,m\\&amp;\text{其中 }f,g_1\ldots
+g_m:\mathbb{R}^n\to\mathbb{R}\text{为凸函数}\end{aligned}\]</span></p>
+<p><strong>凸优化</strong>可以表示为如上的标准型。</p>
+<p>令 <span
+class="math inline">\(\mathcal{X}\subset\mathbb{R}^n\)</span>
+为一凸集，且 <span
+class="math inline">\(f:\mathcal{X}\rightarrow\mathbb{R}\)</span>
+为一凸函数。<strong>凸优化</strong>（Convex Optimization）就是要找出一点
+<span class="math inline">\(x^*\in\mathcal{X}\)</span> 满足 <span
+class="math inline">\(f(x^*) \le f(x)\)</span>。其中 <span
+class="math inline">\(\mathcal{X}\)</span>
+称为<strong>可行域</strong>，<span class="math inline">\(f\)</span>
+称为<strong>目标函数</strong>，<span class="math inline">\(x^*\)</span>
+称为<strong>全局最优解</strong>。</p>
+<p>如果存在等式约束，可以表示为两个符号相反的不等式约束，这两个凸的不等式约束，可以表示一个仿射函数的等式约束。</p>
+<h4 id="kkt-条件">KKT 条件 <a id="kkt"></a></h4>
+<p>​<strong>KKT 条件</strong>（Karush–Kuhn–Tucker
+conditions）是最优化（特别是非线性规划）领域最重要的成果之一，是判断某点是极值点的必要条件。</p>
+<p><span class="math display">\[\begin{aligned}\min_{\mathbf{x}} \quad
+f(\mathbf{x})\\\text{s.t.}\quad
+g_i(\mathbf{x})&amp;\le0,i=1,...,m\\h_j(\mathbf{x})&amp;=0,j=1,...,n\end{aligned}\]</span></p>
+<p>对于以上优化问题，存在相应的拉格朗日函数。</p>
+<p><span
+class="math display">\[L(\mathbf{x},\mathbf{\lambda},\mathbf{\mu})=f(\mathbf{x})+\sum_{i=1}^m\lambda_ig_i(\mathbf{x})+\sum_{j=1}^n\mu_jh_j(\mathbf{x})\]</span></p>
+<p>则其对应的 KKT 条件如下。</p>
+<p><span class="math display">\[
+\left.\text{(KKT)}\left\{\begin{array}{ll}\text{稳定性条件}&amp;\nabla_{\mathbf{x}}{L}({\mathbf{x}},\lambda,\mu)=0\\\text{原始可行性条件}&amp;g_i({\mathbf{x}})\leq
+0,i=1,\cdots,m\\H\text{补松驰条件}&amp;\lambda_ig_i({\mathbf{x}})=0,i=1,\cdots,m\\\text{对偶可行性条件}&amp;\lambda_i\geq0,i=1,\cdots,m\\\text{原始可行性条件}&amp;h_j({\mathbf{x}})=0,j=1,\cdots,n\end{array}\right.\right.
+\]</span></p>
+<h4 id="slater-条件">Slater 条件<a id="slater"></a></h4>
+<p>若对凸优化问题</p>
+<p><span class="math display">\[\begin{aligned}\min_{\mathbf{x}} \quad
+f(\mathbf{x})\\\text{s.t.}\quad
+g_i(\mathbf{x})&amp;\le0,i=1,...,m\\h_j(\mathbf{x})&amp;=0,j=1,...,n\end{aligned}\]</span></p>
+<p>存在 <span class="math inline">\(\mathbf{x}\in\mathbb{R}^d\)</span>
+满足</p>
+<p><span class="math display">\[g_i(\mathbf{x})&lt;0,\quad
+i=1,...,m\]</span></p>
+<p>则称对此问题满足 Slater 条件。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%9F%A5%E8%AF%86%E7%82%B9%E6%95%B4%E7%90%86/" rel="tag"># 知识点整理</a>
+              <a href="/tags/%E4%BC%98%E5%8C%96%E7%90%86%E8%AE%BA/" rel="tag"># 优化理论</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/11/16/KLD/" rel="prev" title="KL散度">
+      <i class="fa fa-chevron-left"></i> KL散度
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div id="toc-div">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%89%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84%E4%BC%98%E5%8C%96%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">等式约束的优化问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E7%AD%89%E5%BC%8F%E7%BA%A6%E6%9D%9F%E7%9A%84%E4%BC%98%E5%8C%96%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">不等式约束的优化问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E5%81%B6%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">对偶问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%89%E6%A0%BC%E6%9C%97%E6%97%A5%E5%87%BD%E6%95%B0"><span class="nav-number">3.1.</span> <span class="nav-text">拉格朗日函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%89%E6%A0%BC%E6%9C%97%E6%97%A5%E5%AF%B9%E5%81%B6%E5%87%BD%E6%95%B0"><span class="nav-number">3.2.</span> <span class="nav-text">拉格朗日对偶函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%89%E6%A0%BC%E6%9C%97%E6%97%A5%E5%AF%B9%E5%81%B6%E9%97%AE%E9%A2%98"><span class="nav-number">3.3.</span> <span class="nav-text">拉格朗日对偶问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">4.</span> <span class="nav-text">概念</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%B8%E9%9B%86"><span class="nav-number">4.1.</span> <span class="nav-text">凸集</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%B8%E5%87%BD%E6%95%B0"><span class="nav-number">4.2.</span> <span class="nav-text">凸函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%87%B8%E4%BC%98%E5%8C%96"><span class="nav-number">4.3.</span> <span class="nav-text">凸优化 </span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#kkt-%E6%9D%A1%E4%BB%B6"><span class="nav-number">4.4.</span> <span class="nav-text">KKT 条件 </span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#slater-%E6%9D%A1%E4%BB%B6"><span class="nav-number">4.5.</span> <span class="nav-text">Slater 条件</span></a></li></ol></li></ol></div>
+        </div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">CSCSX</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+        <div class="back-to-top motion-element">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">CSCSX</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-area"></i>
+    </span>
+    <span title="站点总字数">67k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:02</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
